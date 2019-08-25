@@ -4,7 +4,7 @@ description: VoteSupport for HappyMine
 author: "DeStilleGast"
 website: ${url}
 
-main: com.DeStilleGast.MC.HM.VoteSytem.VoteCore
+main: com.DeStilleGast.Minecraft.HappyMine.VoteSytem.VoteCore
 
 depend:
   - NuVotifier
