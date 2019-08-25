@@ -1,0 +1,10 @@
+name: VoteSupport
+version: 0.1.1
+description: VoteSupport for HappyMine
+author: "DeStilleGast"
+website: ${url}
+
+main: com.DeStilleGast.MC.HM.VoteSytem.VoteCore
+
+depend:
+  - NuVotifier

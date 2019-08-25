@@ -1,0 +1,10 @@
+prefix: "&8[&bVote&8]&r"
+createPrefix: "&8[&bVote creator&8]&r"
+
+# Use {item} to display bought item
+# use {price} for the price of the bought item
+boughtMessage: "You bought {item}&r for &e{price}&r VotePoints!"
+
+poorMessage: "You are to poor to buy this item, you have &e{coins}&r VotePoints!"
+
+noItemsMessage: "This server doesn't have any items in the VoteShop!"

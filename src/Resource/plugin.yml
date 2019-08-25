@@ -1,0 +1,9 @@
+name: VoteShop
+main: com.DeStilleGast.MC.HM.VoteShop.ShopCore
+version: 0.1.1
+author: DeStilleGast
+
+commands:
+  voteshop:
+    description: Spendeer je vote points voor speciale perks
+    usage: /voteshop
