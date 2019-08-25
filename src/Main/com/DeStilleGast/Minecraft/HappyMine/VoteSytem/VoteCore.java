@@ -39,7 +39,7 @@ public class VoteCore extends Plugin implements Listener {
     private String LogTable = "VoteLogs";
     private String VoteCurrency = "VoteCurrency";
 
-    private String voteAnnounce = "&8[&bVote&8] &r{player} heeft gevote en heeft {points} VotePoints gekregen, wil je ook VotePoints, kijk dan hier http://www.happymine.nl/vote";
+    private String voteAnnounce = "&8[&bVote&8] &r{player} heeft gevote en heeft {points} VotePoints gekregen, wil je ook VotePoints, kijk dan hier https://www.happymine.nl/vote";
 
     @Override
     public void onEnable() {

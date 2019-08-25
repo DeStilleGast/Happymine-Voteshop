@@ -220,9 +220,9 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
                         commandLines.remove(p);
                     }
 
-                    sender.sendMessage(prefixCreator + "Je moet de config van " + args[1] + " updaten en dan '/voteshop reload' doen om te reloaden");
+                    sender.sendMessage(prefixCreator + " You will need to update the config of " + args[1] + " and after that run '/voteshop reload'");
                 } catch (IOException e) {
-                    sender.sendMessage(prefixCreator + "Voer een naam in voor de config");
+                    sender.sendMessage(prefixCreator + " Enter name of config");
                     e.printStackTrace();
                 }
 
@@ -279,7 +279,7 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
                     sender.sendMessage(prefixCreator + "onbekende commando");
                 }
             } else {
-                sender.sendMessage(prefixCreator + "Je bent de server zelf, die kan alles al (bijna alles)");
+                sender.sendMessage(prefixCreator + " Sadly servers don't have any interfaces to interact with inventories");
             }
         }
         return true;
