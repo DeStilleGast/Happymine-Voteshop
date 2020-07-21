@@ -21,8 +21,17 @@ public class PlayerLogger implements Listener {
         connector = sqlConnector;
 
         String query = "CREATE TABLE IF NOT EXISTS `KnownPlayers` ( `ID` INT NOT NULL AUTO_INCREMENT , `UUID` VARCHAR(36) NOT NULL , `Username` VARCHAR(20) NOT NULL , PRIMARY KEY (`ID`), UNIQUE (`UUID`))";
-        PreparedStatement ps = connector.prepareStatement(query);
-        connector.update(ps);
+        try {
+
+            connector.open();
+            PreparedStatement ps = connector.prepareStatement(query);
+            connector.update(ps);
+        }catch (SQLException ex){
+            ProxyServer.getInstance().getLogger().fine("Could not create table");
+            ex.printStackTrace();
+        }finally {
+            connector.close();
+        }
     }
 
     @EventHandler
@@ -39,6 +48,7 @@ public class PlayerLogger implements Listener {
         String Username = player.getName();
         String UUID = player.getUniqueId().toString();
 
+        connector.open();
         PreparedStatement ps = connector.prepareStatement("INSERT INTO `KnownPlayers` (`Username`, `UUID`) VALUES (?, ?) ON DUPLICATE KEY UPDATE Username = ?");
         ps.setString(1, Username);  // username
         ps.setString(2, UUID);      // UUID
@@ -46,6 +56,7 @@ public class PlayerLogger implements Listener {
         ps.setString(3, Username);  // username
 
         connector.update(ps);
+        connector.close();
     }
 
 

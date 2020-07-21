@@ -8,11 +8,13 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,10 +30,11 @@ import java.util.HashMap;
 /**
  * Created by DeStilleGast on 13-11-2016.
  */
-public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
+public class ShopCore extends JavaPlugin implements Listener, CommandExecutor, InventoryHolder {
 
+    private Inventory shopInventory;
 
-    private ArrayList<ShopItem> shopItems = new ArrayList<ShopItem>();
+    private ArrayList<ShopItem> shopItems = new ArrayList<>();
 
     private HashMap<Player, Integer> creator = new HashMap<Player, Integer>();
     private HashMap<Player, ArrayList<String>> commandLines = new HashMap<Player, ArrayList<String>>();
@@ -116,25 +119,46 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
             //addPerk(cf.getItemStack("Item"), cf.getInt("refillTime", 5));
 
             ItemStack item = cf.getItemStack("Item");
-            if (item == null || item.getType() == Material.AIR) continue;
+            if (item == null) continue;
+
 
             ArrayList<String> commands = (ArrayList<String>) cf.getList("runCommands");
 
             ItemMeta im = item.getItemMeta();
             ArrayList<String> l = new ArrayList<String>();
             l.add("VotePoints: " + cf.get("price", 0));
+
+            if (im.getLore() != null) {
+                for (String existingLore : im.getLore()) {
+                    l.add(ChatColor.translateAlternateColorCodes('&', existingLore));
+                }
+            }
+
             im.setLore(l);
 
             item.setItemMeta(im);
             item.setAmount(1);
 
-            shopItems.add(new ShopItem(item, commands, cf.getInt("price", 0)));
+
+            shopItems.add(new ShopItem(item, commands, cf.getInt("price", 100000)));
+            this.getLogger().info("Shop item added: " + f.getName());
         }
 
+        if (shopInventory != null) {
+            shopInventory.getViewers().forEach(HumanEntity::closeInventory);
+        }
+
+        shopInventory = getServer().createInventory(this, 9 * (int) Math.ceil(this.shopItems.size() / 9D), "[" + this.shopItems.size() + " item] Vote shop: ");// + getCurrency(p) + " VotePoints");
+
+        for (ShopItem si : shopItems) {
+            shopInventory.addItem(si.getItemStack());
+        }
     }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent e) {
+        if (e.getInventory().getHolder() != this) return;
+
         Player p = (Player) e.getWhoClicked();
         ItemStack itemStack = e.getCurrentItem();
 
@@ -142,9 +166,6 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
             return;
         }
 
-        if (!e.getView().getTitle().startsWith("Vote shop: ")) {
-            return;
-        }
 
         for (ShopItem si : shopItems) {
             ItemStack shopItm = si.getItemStack();
@@ -187,14 +208,7 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
                     sender.sendMessage(prefix + " " + noItemMessage);
                     return true;
                 } else {
-
-                    Inventory shopInv = getServer().createInventory(null, 9 * (int) Math.ceil((double) this.shopItems.size() / 9D), "Vote shop: " + getCurrency(p) + " VotePoints");
-
-                    for (ShopItem si : shopItems) {
-                        shopInv.addItem(si.getItemStack());
-                    }
-
-                    p.openInventory(shopInv);
+                    p.openInventory(getInventory());
                 }
             } else if (args[0].equalsIgnoreCase("create") && sender.isOp()) {
                 sender.sendMessage(prefixCreator + label + " addcommand <command>");
@@ -336,5 +350,13 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
             if (database.hasConnection())
                 database.close();
         }
+    }
+
+
+    @Override
+    public Inventory getInventory() {
+        //"[" + this.shopItems.size() + "] Vote shop: ");// + getCurrency(p) + " VotePoints");
+
+        return shopInventory;
     }
 }
