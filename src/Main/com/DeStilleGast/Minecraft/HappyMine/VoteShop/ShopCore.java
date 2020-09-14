@@ -2,19 +2,15 @@ package com.DeStilleGast.Minecraft.HappyMine.VoteShop;
 
 import com.DeStilleGast.Minecraft.HappyMine.database.MySQLConnector;
 import com.google.common.base.Joiner;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -26,15 +22,27 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 /**
  * Created by DeStilleGast on 13-11-2016.
  */
-public class ShopCore extends JavaPlugin implements Listener, CommandExecutor, InventoryHolder {
+public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
 
-    private Inventory shopInventory;
+    /*
+    * - ui overhaul (votepoints weergeven in items)
+    - group/category system
+    - config uitbreiden per item
+    │ - feedback (true/false)
+    │ - showIfPermission (string array)
+    │ - removeIfPermissions (string array)
+    └ - group/category
+    - command om votepoints bij te stellen (add/remove/set)
+    - placeholder api support (optionele support, niet verplichten)
+    */
 
-    private ArrayList<ShopItem> shopItems = new ArrayList<>();
+
+    protected ArrayList<ShopItem> shopItems = new ArrayList<>();
 
     private HashMap<Player, Integer> creator = new HashMap<Player, Integer>();
     private HashMap<Player, ArrayList<String>> commandLines = new HashMap<Player, ArrayList<String>>();
@@ -42,17 +50,20 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor, I
     private File shopFolder;
 
     private String prefixCreator;
-    private String prefix;
-    private String boughtMessage;
-    private String poorMessage;
+    protected String prefix;
+    protected String boughtMessage;
+    protected String poorMessage;
     private String noItemMessage;
 
     private MySQLConnector database;
+
+//    public static final String antiTamper = ChatColor.RESET + "-=[VoteShop item]=-";
 
 
     @Override
     public void onEnable() {
         this.getServer().getPluginManager().registerEvents(this, this);
+
         this.getCommand("voteshop").setExecutor(this);
 
         if (!this.getDataFolder().exists()) this.getDataFolder().mkdir();
@@ -134,6 +145,7 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor, I
                 }
             }
 
+//            l.add(antiTamper);
             im.setLore(l);
 
             item.setItemMeta(im);
@@ -144,60 +156,66 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor, I
             this.getLogger().info("Shop item added: " + f.getName());
         }
 
-        if (shopInventory != null) {
-            shopInventory.getViewers().forEach(HumanEntity::closeInventory);
-        }
-
-        shopInventory = getServer().createInventory(this, 9 * (int) Math.ceil(this.shopItems.size() / 9D), "[" + this.shopItems.size() + " item] Vote shop: ");// + getCurrency(p) + " VotePoints");
-
-        for (ShopItem si : shopItems) {
-            shopInventory.addItem(si.getItemStack());
-        }
-    }
-
-    @EventHandler
-    public void onInventoryClick(InventoryClickEvent e) {
-        if (e.getInventory().getHolder() != this) return;
-
-        Player p = (Player) e.getWhoClicked();
-        ItemStack itemStack = e.getCurrentItem();
-
-        if (itemStack == null) {
-            return;
-        }
-
-
-        for (ShopItem si : shopItems) {
-            ItemStack shopItm = si.getItemStack();
-
-            if (itemStack.isSimilar(shopItm)) {
-                int myPoints = getCurrency(p);
-                if (myPoints >= si.getPrice()) {
-                    pay(p, si.getPrice());
-
-                    for (String cmd : si.getCommands()) {
-                        cmd = cmd.replace("{player}", p.getName());
-                        getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
-                    }
-
-                    String itemName = "no name";
-                    if (itemStack.hasItemMeta() & itemStack.getItemMeta() != null /* to get rid of annoying build warnings */) {
-                        if (itemStack.getItemMeta().hasDisplayName()) {
-                            itemName = itemStack.getItemMeta().getDisplayName();
-                        } else if (itemStack.getItemMeta().hasLocalizedName()) {
-                            itemName = itemStack.getItemMeta().getLocalizedName();
-                        }
-                    }
-
-                    p.sendMessage(String.format("%s %s", prefix, boughtMessage.replace("{item}", itemName).replace("{price}", si.getPrice() + "")));
-                    this.getLogger().info(String.format("%s player %s has bought '%s'", prefix, p.getName(), itemName));
-                } else {
-                    p.sendMessage(prefix + " " + poorMessage.replace("{coins}", myPoints + ""));
-                }
+        Bukkit.getOnlinePlayers().forEach(p -> {
+            if(p.getOpenInventory().getTopInventory().getHolder() instanceof ShopUI){
+                p.closeInventory();
             }
-        }
-        e.setCancelled(true);
+        });
+
+//        if (shopInventory != null) {
+//            shopInventory.getViewers().forEach(HumanEntity::closeInventory);
+//        }
+
+//        shopInventory = getServer().createInventory(this, 9 * (int) Math.ceil(this.shopItems.size() / 9D), "Vote shop: ");// + getCurrency(p) + " VotePoints");
+//
+//        for (ShopItem si : shopItems) {
+//            shopInventory.addItem(si.getItemStack());
+//        }
     }
+
+//    @EventHandler
+//    public void onInventoryClick(InventoryClickEvent e) {
+//        if (e.getInventory().getHolder() != this) return;
+//
+//        Player p = (Player) e.getWhoClicked();
+//        ItemStack itemStack = e.getCurrentItem();
+//
+//        if (itemStack == null) {
+//            return;
+//        }
+//
+//
+//        for (ShopItem si : shopItems) {
+//            ItemStack shopItm = si.getItemStack();
+//
+//            if (itemStack.isSimilar(shopItm)) {
+//                int myPoints = getCurrency(p);
+//                if (myPoints >= si.getPrice()) {
+//                    pay(p, si.getPrice());
+//
+//                    for (String cmd : si.getCommands()) {
+//                        cmd = cmd.replace("{player}", p.getName());
+//                        getServer().dispatchCommand(getServer().getConsoleSender(), cmd);
+//                    }
+//
+//                    String itemName = "no name";
+//                    if (itemStack.hasItemMeta() & itemStack.getItemMeta() != null /* to get rid of annoying build warnings */) {
+//                        if (itemStack.getItemMeta().hasDisplayName()) {
+//                            itemName = itemStack.getItemMeta().getDisplayName();
+//                        } else if (itemStack.getItemMeta().hasLocalizedName()) {
+//                            itemName = itemStack.getItemMeta().getLocalizedName();
+//                        }
+//                    }
+//
+//                    p.sendMessage(String.format("%s %s", prefix, boughtMessage.replace("{item}", itemName).replace("{price}", si.getPrice() + "")));
+//                    this.getLogger().info(String.format("%s player %s has bought '%s'", prefix, p.getName(), itemName));
+//                } else {
+//                    p.sendMessage(prefix + " " + poorMessage.replace("{coins}", myPoints + ""));
+//                }
+//            }
+//        }
+//        e.setCancelled(true);
+//    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -208,7 +226,7 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor, I
                     sender.sendMessage(prefix + " " + noItemMessage);
                     return true;
                 } else {
-                    p.openInventory(getInventory());
+                    p.openInventory(openShop(p));
                 }
             } else if (args[0].equalsIgnoreCase("create") && sender.isOp()) {
                 sender.sendMessage(prefixCreator + label + " addcommand <command>");
@@ -299,6 +317,13 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor, I
         return true;
     }
 
+    private Inventory openShop(Player p) {
+        ShopUI newShop = new ShopUI(this, shopItems.stream().map(ShopItem::getItemStack).collect(Collectors.toList()), p);
+
+        Bukkit.getPluginManager().registerEvents(newShop, this);
+        return newShop.getInventory();
+    }
+
     //easy for sub modules too !
     public static String[] getAllArgs(Integer offset, String[] arg) {
         String[] args = new String[arg.length - offset];
@@ -352,11 +377,23 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor, I
         }
     }
 
+//
+//    @Override
+//    public Inventory getInventory() {
+//        //"[" + this.shopItems.size() + "] Vote shop: ");// + getCurrency(p) + " VotePoints");
+//
+//        return shopInventory;
+//    }
 
-    @Override
-    public Inventory getInventory() {
-        //"[" + this.shopItems.size() + "] Vote shop: ");// + getCurrency(p) + " VotePoints");
-
-        return shopInventory;
-    }
+//    @EventHandler(priority = EventPriority.HIGHEST)
+//    public void onItemGrab(InventoryClickEvent e){
+//        if(e.getCurrentItem() != null && e.getCurrentItem().hasItemMeta()){
+//            ItemMeta im = e.getCurrentItem().getItemMeta();
+//            if(!e.isCancelled()){
+//                if(im.getLore().contains(antiTamper)){
+//                    e.setCancelled(true);
+//                }
+//            }
+//        }
+//    }
 }
