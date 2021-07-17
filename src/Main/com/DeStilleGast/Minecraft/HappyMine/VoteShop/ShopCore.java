@@ -296,6 +296,35 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
             } else if (args[0].equalsIgnoreCase("reload") && sender.isOp()) {
                 this.loadShopItems();
                 sender.sendMessage(prefixCreator + "reloaded :D");
+            } else if (args[0].equalsIgnoreCase("take") && sender.hasPermission("voteshop.take")) {
+                try {
+                    String playerName = args[1];
+                    int amount = Integer.parseInt(args[2]);
+
+                    Player player = null;
+
+                    for (Player i : Bukkit.getOnlinePlayers()) {
+                        if (i.getName().equalsIgnoreCase(playerName)) {
+                            player = i;
+                            break;
+                        }
+                    }
+
+                    if (player == null) {
+                        sender.sendMessage(prefixCreator + " player " + playerName + " doesn't exist!");
+                        return true;
+                    }
+
+                    if (getCurrency(p) >= amount) {
+                        pay(player, amount);
+                        sender.sendMessage(prefixCreator + " successfully took " + amount + " votepoints from " + playerName);
+                    } else {
+                        sender.sendMessage(prefixCreator + "Player " + amount + " doesn't have enough votepoints!");
+                    }
+                } catch (Exception ex) {
+                    sender.sendMessage(prefixCreator + " take <player> <amount>");
+                    ex.printStackTrace();
+                }
             }
         } else {
             if (args.length == 1) {
