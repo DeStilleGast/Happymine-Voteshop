@@ -62,7 +62,7 @@
         <dependency>
             <groupId>com.github.DeStilleGast</groupId>
             <artifactId>DSG-Utils</artifactId>
-            <version>716d98901f</version>
+            <version>b8edb611f4</version>
         </dependency>
     </dependencies>
 

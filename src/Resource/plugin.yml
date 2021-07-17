@@ -4,9 +4,6 @@ version: 0.1.1
 author: DeStilleGast
 api-version: 1.13
 
-depend:
-  - Votifier
-
 softdepend:
   - DSGUtils
 

@@ -4,8 +4,9 @@ import com.DeStilleGast.Minecraft.HappyMine.VoteShop.ShopCore;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
+import xyz.destillegast.dsgutils.helpers.SignHelper;
 import xyz.destillegast.dsgutils.signs.SignActions;
-import xyz.destillegast.dsgutils.signs.SignManager;
 
 /**
  * Created by DeStilleGast 16-7-2021
@@ -21,14 +22,14 @@ public class CurrencySign implements SignActions {
 
     @Override
     public boolean onSignPlace(Player player, Block block, String[] lines) {
-        SignManager.setLine(block, 0, ChatColor.GREEN + "[Vote points]");
+        SignHelper.setLine(block, 0, ChatColor.GREEN + "[Vote points]");
 
         return true;
     }
 
     @Override
     public void onSignUpdate(Player player, Block block) {
-        SignManager.sendSignUpdate(player, block, new String[]{
+        SignHelper.sendSignUpdate(player, block, new String[]{
                 ChatColor.GREEN + "[Vote points]",
                 "Votepoints: " + shopCore.getCurrency(player),
                 "",
@@ -42,7 +43,7 @@ public class CurrencySign implements SignActions {
     }
 
     @Override
-    public void onSignInteract(Player player, Block block) {
+    public void onSignInteract(Player player, Block block, Action action) {
 
     }
 }

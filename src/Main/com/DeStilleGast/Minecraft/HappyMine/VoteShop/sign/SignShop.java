@@ -7,10 +7,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 import xyz.destillegast.dsgutils.helpers.ColorHelper;
+import xyz.destillegast.dsgutils.helpers.SignHelper;
 import xyz.destillegast.dsgutils.signs.SignActions;
-import xyz.destillegast.dsgutils.signs.SignManager;
 
 import java.util.Optional;
 
@@ -30,7 +31,7 @@ public class SignShop implements SignActions {
     @Override
     public boolean onSignPlace(Player player, Block block, String[] lines) {
         Bukkit.getScheduler().runTask(shopCore, () -> {
-            SignManager.sendSignUpdate(block, getLines(player, lines));
+            SignHelper.sendSignUpdate(block, getLines(player, lines));
         });
 
         return true;
@@ -38,7 +39,7 @@ public class SignShop implements SignActions {
 
     @Override
     public void onSignUpdate(Player player, Block block) {
-        SignManager.sendSignUpdate(block, getLines(player, ((Sign)block.getState()).getLines()));
+        SignHelper.sendSignUpdate(block, getLines(player, ((Sign) block.getState()).getLines()));
     }
 
     @Override
@@ -47,8 +48,8 @@ public class SignShop implements SignActions {
     }
 
     @Override
-    public void onSignInteract(Player player, Block block) {
-        Optional<ShopItem> shopItemOptional = shopCore.getShopItems().stream().filter(si -> si.getName().equalsIgnoreCase(((Sign)block.getState()).getLine(3))).findFirst();
+    public void onSignInteract(Player player, Block block, Action action) {
+        Optional<ShopItem> shopItemOptional = shopCore.getShopItems().stream().filter(si -> si.getName().equalsIgnoreCase(((Sign) block.getState()).getLine(3))).findFirst();
 
         shopItemOptional.ifPresent(shopItem -> {
             int playerPoints = shopCore.getCurrency(player);
@@ -76,14 +77,14 @@ public class SignShop implements SignActions {
         });
     }
 
-    private String[] getLines(Player player, String[] lines){
+    private String[] getLines(Player player, String[] lines) {
         Optional<ShopItem> shopItem = shopCore.getShopItems().stream().filter(si -> si.getName().equalsIgnoreCase(lines[3])).findFirst();
 
 
-        return new String[] {
+        return new String[]{
                 (shopItem.filter(item -> shopCore.getCurrency(player) > item.getPrice()).map(item -> ChatColor.GREEN).orElse(ChatColor.RED)) + "[VoteShop]",
                 ColorHelper.translate(lines[1]),
-                "Prijs: " + (shopItem.isPresent() ? shopItem.get().getPrice() : "?") ,
+                "Prijs: " + (shopItem.isPresent() ? shopItem.get().getPrice() : "?"),
                 ""
         };
     }
