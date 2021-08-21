@@ -60,6 +60,8 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
     protected String poorMessage;
     private String noItemMessage;
 
+    private String aliasCommand;
+
     private MySQLConnector database;
 
 //    public static final String antiTamper = ChatColor.RESET + "-=[VoteShop item]=-";
@@ -83,6 +85,8 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
             boughtMessage = ChatColor.translateAlternateColorCodes('&', config.getString("boughtMessage", "You bought {item}&r for &e{price}&r VotePoints!")).trim();
             poorMessage = ChatColor.translateAlternateColorCodes('&', config.getString("poorMessage", "You are to poor to buy this item, you have &e{coins}&r VotePoints!")).trim();
             noItemMessage = ChatColor.translateAlternateColorCodes('&', config.getString("noItemMessage", "This server doesn't have any items in the VoteShop!")).trim();
+
+            aliasCommand = config.getString("aliasCommand", "spawn");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -213,11 +217,13 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
                     sender.sendMessage(prefix + " " + noItemMessage);
                     return true;
                 } else {
-                    Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-                        Inventory shopInventory = openShop(p);
-
-                        Bukkit.getScheduler().runTask(this, () -> p.openInventory(shopInventory));
-                    });
+                    p.performCommand(aliasCommand);
+//                    sender.sendMessage(prefix + " shop command is gesloten, bezoek ons via de fysieke shop");
+//                    Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+//                        Inventory shopInventory = openShop(p);
+//
+//                        Bukkit.getScheduler().runTask(this, () -> p.openInventory(shopInventory));
+//                    });
                 }
             } else if (args[0].equalsIgnoreCase("create") && sender.isOp()) {
                 sender.sendMessage(prefixCreator + label + " addcommand <command>");
@@ -238,8 +244,10 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
                     test.set("price", creator.getOrDefault(p, 10));
                     test.set("runCommands", commandLines.get(p));
 
-                    test.set("showIfAllPermission", new ArrayList<String>());
-                    test.set("hideIfAnyPermission", new ArrayList<String>());
+//                    test.set("showIfAllPermission", new ArrayList<String>());
+//                    test.set("hideIfAnyPermission", new ArrayList<String>());
+
+                    test.set("enabled", true);
 
                     test.save(new File(shopFolder, args[1] + ".yml"));
 
@@ -342,7 +350,7 @@ public class ShopCore extends JavaPlugin implements Listener, CommandExecutor {
     }
 
     private Inventory openShop(Player p) {
-        ShopUI newShop = new ShopUI(this, shopItems.stream().filter(s -> s.canSeeThisItem(p)).map(ShopItem::getItemStack).sorted(Comparator.comparing(ItemStack::getType)).collect(Collectors.toList()), p);
+        ShopUI newShop = new ShopUI(this, shopItems.stream().filter(ShopItem::isEnabled).map(ShopItem::getItemStack).sorted(Comparator.comparing(ItemStack::getType)).collect(Collectors.toList()), p);
 
         Bukkit.getPluginManager().registerEvents(newShop, this);
         return newShop.getInventory();

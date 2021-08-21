@@ -45,7 +45,7 @@ public class ShopUI implements InventoryHolder, Listener {
 
         // Border
         ItemStack placeHolder = new ItemHelper(Material.BLACK_STAINED_GLASS_PANE)
-                .setDisplayName("Border item")
+                .setDisplayName("")
                 .build();
 
         applyShopDecoration(placeHolder, shopDecoration);

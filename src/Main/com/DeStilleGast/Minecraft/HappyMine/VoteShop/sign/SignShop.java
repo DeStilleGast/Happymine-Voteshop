@@ -52,6 +52,14 @@ public class SignShop implements SignActions {
         Optional<ShopItem> shopItemOptional = shopCore.getShopItems().stream().filter(si -> si.getName().equalsIgnoreCase(((Sign) block.getState()).getLine(3))).findFirst();
 
         shopItemOptional.ifPresent(shopItem -> {
+            if(!shopItem.isEnabled()){
+                return;
+            }
+//
+//            if(!shopItem.canSeeThisItem(player)){
+//                return;
+//            }
+
             int playerPoints = shopCore.getCurrency(player);
             if (playerPoints >= shopItem.getPrice()) {
                 shopCore.pay(player, shopItem.getPrice());
@@ -78,15 +86,32 @@ public class SignShop implements SignActions {
     }
 
     private String[] getLines(Player player, String[] lines) {
-        Optional<ShopItem> shopItem = shopCore.getShopItems().stream().filter(si -> si.getName().equalsIgnoreCase(lines[3])).findFirst();
+        Optional<ShopItem> shopItemOptional = shopCore.getShopItems().stream().filter(si -> si.getName().equalsIgnoreCase(lines[3])).findFirst();
+
+        if(shopItemOptional.isPresent()) {
+            ShopItem shopItem = shopItemOptional.get();
+            String header = "[VoteShop]";
+            if(!shopItem.isEnabled()){
+                header = ChatColor.GRAY + "[Closed]";
+            }else{
+                header = (shopItemOptional.filter(item -> shopCore.getCurrency(player) > item.getPrice()).map(item -> ChatColor.GREEN).orElse(ChatColor.RED)) + header;
+            }
 
 
-        return new String[]{
-                (shopItem.filter(item -> shopCore.getCurrency(player) > item.getPrice()).map(item -> ChatColor.GREEN).orElse(ChatColor.RED)) + "[VoteShop]",
-                ColorHelper.translate(lines[1]),
-                "Prijs: " + (shopItem.isPresent() ? shopItem.get().getPrice() : "?"),
-                ""
-        };
+            return new String[]{
+                    header,
+                    ColorHelper.translate(lines[1]),
+                    ColorHelper.translate(lines[2]),
+                    "Prijs: " + (shopItemOptional.isPresent() ? shopItemOptional.get().getPrice() : "?")
+            };
+        }else{
+            return new String[]{
+                    ChatColor.RED + "[VoteShop]",
+                    "Invalid",
+                    "",
+                    ""
+            };
+        }
     }
 
 }

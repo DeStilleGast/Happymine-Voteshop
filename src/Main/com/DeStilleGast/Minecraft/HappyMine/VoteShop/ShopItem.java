@@ -14,13 +14,14 @@ import java.util.List;
  */
 public class ShopItem {
 
+    boolean isEnabled = true; // grijs
     private String name;
     private ItemStack itemStack;
     private ArrayList<String> commands;
     private int price;
 
-    private List<String> showIfPermission;
-    private List<String> hideIfPermission;
+//    private List<String> showIfPermission;
+//    private List<String> hideIfPermission;
 
     private String group = "default";
 
@@ -33,8 +34,8 @@ public class ShopItem {
 
     public ShopItem(ItemStack item, YamlConfiguration cf, String filename){
         this.itemStack = item;
-        this.commands = (ArrayList<String>) cf.getList("runCommands");
-        this.price = 1; //cf.getInt("price", 100000);
+        this.commands = (ArrayList<String>) cf.getStringList("runCommands");
+        this.price = cf.getInt("price", 100000);
 
 
         ItemMeta im = item.getItemMeta();
@@ -52,9 +53,9 @@ public class ShopItem {
         item.setItemMeta(im);
         item.setAmount(1);
 
-
-        showIfPermission = cf.getStringList("showIfAllPermission");
-        hideIfPermission = cf.getStringList("hideIfAnyPermission");
+        this.isEnabled = cf.getBoolean("enabled", true);
+//        showIfPermission = cf.getStringList("showIfAllPermission");
+//        hideIfPermission = cf.getStringList("hideIfAnyPermission");
 
         this.name = filename;
     }
@@ -71,19 +72,31 @@ public class ShopItem {
         return this.price;
     }
 
-    public boolean canSeeThisItem(Player player){
-//        if(showIfPermission.size() == 0) return true;
-
-        if(hideIfPermission.size() != 0){
-            if(hideIfPermission.stream().anyMatch(player::hasPermission)){
-                return false;
-            }
-        }
-
-        return showIfPermission.stream().allMatch(player::hasPermission);
-    }
+//    public boolean canSeeThisItem(Player player){
+////        if(showIfPermission.size() == 0) return true;
+//
+//        if(hideIfPermission.size() != 0){
+//            if(hideIfPermission.stream().anyMatch(player::hasPermission)){
+//                return false;
+//            }
+//        }
+//
+//        return showIfPermission.stream().allMatch(player::hasPermission);
+//    }
 
     public String getName() {
         return name;
     }
+
+    public boolean isEnabled() {
+        return isEnabled;
+    }
+
+//    public List<String> getShowIfPermission() {
+//        return showIfPermission;
+//    }
+//
+//    public List<String> getHideIfPermission() {
+//        return hideIfPermission;
+//    }
 }

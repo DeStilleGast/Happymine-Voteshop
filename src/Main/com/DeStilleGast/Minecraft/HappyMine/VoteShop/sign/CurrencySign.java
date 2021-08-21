@@ -22,8 +22,6 @@ public class CurrencySign implements SignActions {
 
     @Override
     public boolean onSignPlace(Player player, Block block, String[] lines) {
-        SignHelper.setLine(block, 0, ChatColor.GREEN + "[Vote points]");
-
         return true;
     }
 
